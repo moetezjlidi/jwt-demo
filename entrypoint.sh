@@ -13,6 +13,11 @@ fi
 echo "=== Cache clear ==="
 php bin/console cache:clear --env=prod
 
+echo "=== Generation migration si absente ==="
+if [ -z "$(ls -A migrations/*.php 2>/dev/null)" ]; then
+    php bin/console doctrine:migrations:diff --no-interaction --env=prod || true
+fi
+
 echo "=== Migrations ==="
 php bin/console doctrine:migrations:migrate --no-interaction --env=prod
 
