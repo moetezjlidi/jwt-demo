@@ -13,13 +13,8 @@ fi
 echo "=== Cache clear ==="
 php bin/console cache:clear --env=prod
 
-echo "=== Generation migration si absente ==="
-if [ -z "$(ls -A migrations/*.php 2>/dev/null)" ]; then
-    php bin/console doctrine:migrations:diff --no-interaction --env=prod || true
-fi
-
-echo "=== Migrations ==="
-php bin/console doctrine:migrations:migrate --no-interaction --env=prod
+echo "=== Sync schema ==="
+php bin/console doctrine:schema:update --force --env=prod || true
 
 echo "=== Demarrage serveur port $PORT ==="
 exec php -S 0.0.0.0:${PORT:-8080} -t public
