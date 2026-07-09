@@ -1,0 +1,77 @@
+security:
+    password_hashers:
+        Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface: 'auto'
+
+    providers:
+        users_in_memory:
+            memory:
+                users:
+                    alice:
+                        password: '$2y$13$MfoxUygjq.gjpU7pi50fTOtad.qSELE.GZVPEY6i3I/90fFhUSBEG'
+                        roles: ['ROLE_USER']
+                    bob:
+                        password: '$2y$13$R9h/cIPz0gi.URNNGGEV2OPST9/PgBkqquzi.Ee4E1fM6Zm4sZ2m'
+                        roles: ['ROLE_ADMIN']
+        
+        shibboleth_provider:
+            id: App\Security\ShibbolethUserProvider
+
+        api_users:
+            entity:
+                class: App\Entity\ApiUser
+                property: email
+
+    firewalls:
+        dev:
+            pattern: ^/(_profiler|_wdt|assets|build)/
+            security: false
+
+        login:
+            pattern:  ^/api/login
+            stateless: true
+            json_login:
+                check_path:      /api/login_check
+                username_path:   username
+                password_path:   password
+                success_handler: lexik_jwt_authentication.handler.authentication_success
+                failure_handler: lexik_jwt_authentication.handler.authentication_failure
+            provider: users_in_memory
+
+        shibboleth:
+            pattern: ^/auth/shibboleth
+            stateless: true
+            custom_authenticators:
+                - App\Security\ShibbolethAuthenticator
+            provider: shibboleth_provider
+
+        api:
+            pattern:   ^/api
+            stateless: true
+            provider: api_users
+            jwt: ~
+
+        main:
+            lazy: true
+            provider: users_in_memory
+
+    access_control:
+        - { path: ^/testing,          roles: PUBLIC_ACCESS }
+        - { path: ^/mock-shibboleth,  roles: PUBLIC_ACCESS }
+        - { path: ^/auth/shibboleth,  roles: PUBLIC_ACCESS }
+        - { path: ^/api/login,        roles: PUBLIC_ACCESS }
+        - { path: ^/api/public,       roles: PUBLIC_ACCESS }
+        - { path: ^/api/auth/login,   roles: PUBLIC_ACCESS }
+        - { path: ^/api/auth/refresh, roles: PUBLIC_ACCESS }
+        - { path: ^/api/auth/me,      roles: IS_AUTHENTICATED_FULLY }
+        - { path: ^/api/v1,           roles: IS_AUTHENTICATED_FULLY }
+        - { path: ^/api,              roles: ROLE_USER }
+
+
+when@test:
+    security:
+        password_hashers:
+            Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface:
+                algorithm: auto
+                cost: 4
+                time_cost: 3
+                memory_cost: 10

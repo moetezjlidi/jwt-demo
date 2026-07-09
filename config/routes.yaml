@@ -1,0 +1,40 @@
+# yaml-language-server: $schema=../vendor/symfony/routing/Loader/schema/routing.schema.json
+
+# This file is the entry point to configure the routes of your app.
+# Methods with the #[Route] attribute are automatically imported.
+# See also https://symfony.com/doc/current/routing.html
+
+# To list all registered routes, run the following command:
+#   bin/console debug:router
+
+controllers:
+    resource: routing.controllers
+
+api_login_check:
+    path: /api/login_check
+    methods: [POST]
+
+api_public:
+    path: /api/public
+    methods: [GET]
+    controller: App\Controller\ApiController::public
+
+api_private:
+    path: /api/private
+    methods: [GET]
+    controller: App\Controller\ApiController::private
+
+api_user_info:
+    path: /api/user-info
+    methods: [GET]
+    controller: App\Controller\ApiController::userInfo
+
+auth_shibboleth:
+    path: /auth/shibboleth
+    methods: [GET]
+    controller: App\Controller\ShibbolethAuthController::shibbolethAuth
+
+mock_shibboleth:
+    path: /mock-shibboleth
+    methods: [GET]
+    controller: App\Controller\MockShibbolethController::simulateShibboleth

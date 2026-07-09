@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GEFORP API - Testing Interface</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3a5f 0%, #2c5f8a 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container { max-width: 1300px; margin: 0 auto; }
+
+        h1 {
+            color: white;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 2.2em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .subtitle {
+            color: rgba(255,255,255,0.8);
+            text-align: center;
+            margin-bottom: 25px;
+            font-size: 0.95em;
+        }
+
+        .session-bar {
+            background: rgba(255,255,255,0.15);
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 8px;
+            padding: 12px 20px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            color: white;
+            font-size: 0.85em;
+        }
+
+        .session-bar .badge {
+            background: #28a745;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-weight: 600;
+        }
+
+        .session-bar .badge.off { background: #6c757d; }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat {
+            background: white;
+            padding: 18px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .stat-value { font-size: 1.8em; font-weight: bold; color: #2c5f8a; }
+        .stat-label { color: #666; margin-top: 5px; font-size: 0.85em; }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 900px) {
+            .grid { grid-template-columns: 1fr; }
+            .stats { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        .card {
+            background: white;
+            border-radius: 8px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .card h2 {
+            color: #2c5f8a;
+            margin-bottom: 20px;
+            font-size: 1.3em;
+            border-bottom: 2px solid #2c5f8a;
+            padding-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card h2 .method-badge {
+            font-size: 0.6em;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-weight: 700;
+            color: white;
+        }
+        .method-badge.get { background: #28a745; }
+        .method-badge.post { background: #007bff; }
+
+        .form-group { margin-bottom: 14px; }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+            font-weight: 600;
+            font-size: 0.85em;
+        }
+
+        input[type="text"], input[type="password"], input[type="email"], textarea, select {
+            width: 100%;
+            padding: 11px;
+            border: 2px solid #ddd;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.88em;
+            transition: border-color 0.3s;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #2c5f8a;
+        }
+
+        textarea { resize: vertical; min-height: 80px; }
+
+        button {
+            background: #2c5f8a;
+            color: white;
+            padding: 11px 22px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.92em;
+            transition: background 0.3s;
+            width: 100%;
+            margin-top: 8px;
+        }
+
+        button:hover { background: #1e3a5f; }
+        button.secondary { background: #6c757d; margin-top: 5px; }
+        button.secondary:hover { background: #545b62; }
+        button.danger { background: #dc3545; }
+        button.danger:hover { background: #a71d2a; }
+
+        .quick-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        .quick-buttons button { margin-top: 0; padding: 8px; font-size: 0.8em; }
+
+        .response-box {
+            background: #f8f9fa;
+            border: 2px solid #ddd;
+            border-radius: 4px;
+            padding: 14px;
+            margin-top: 14px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.8em;
+            max-height: 280px;
+            overflow-y: auto;
+            word-break: break-all;
+            white-space: pre-wrap;
+        }
+
+        .response-box.success { border-color: #28a745; background: #d4edda; color: #155724; }
+        .response-box.error { border-color: #dc3545; background: #f8d7da; color: #721c24; }
+
+        .info-box {
+            background: #e7f3ff;
+            border-left: 4px solid #2196F3;
+            padding: 12px;
+            margin-bottom: 14px;
+            border-radius: 4px;
+            font-size: 0.85em;
+            color: #0c3d7a;
+        }
+
+        .warn-box {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 12px;
+            margin-bottom: 14px;
+            border-radius: 4px;
+            font-size: 0.85em;
+            color: #664d03;
+        }
+
+        .token-display {
+            background: #f8f9fa;
+            border: 1px solid #ddd;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 8px;
+            word-break: break-all;
+            font-family: 'Courier New', monospace;
+            font-size: 0.75em;
+            max-height: 70px;
+            overflow-y: auto;
+        }
+
+        .full-width { grid-column: 1 / -1; }
+
+        .decoded-claims {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .claim-item {
+            background: #eef4fa;
+            padding: 8px 10px;
+            border-radius: 4px;
+            font-size: 0.78em;
+        }
+        .claim-item .k { color: #2c5f8a; font-weight: 700; display: block; }
+        .claim-item .v { color: #333; word-break: break-all; }
+
+        .tabs {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 14px;
+        }
+        .tab-btn {
+            flex: 1;
+            padding: 8px;
+            background: #eef4fa;
+            color: #2c5f8a;
+            border-radius: 4px;
+            width: auto;
+            margin: 0;
+            font-size: 0.8em;
+        }
+        .tab-btn.active { background: #2c5f8a; color: white; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏫 GEFORP API — Testing Interface</h1>
+        <p class="subtitle">Auth email/password + JWT RS256 + refresh token + isolation tenant</p>
+
+        <div class="session-bar">
+            <div>
+                Session: <span class="badge off" id="sessionBadge">Non connecté</span>
+            </div>
+            <div id="sessionUser">Aucun utilisateur</div>
+            <div id="sessionOrg">Organisation: —</div>
+            <div id="tokenExpiry">Expire: —</div>
+        </div>
+
+        <div class="stats">
+            <div class="stat"><div class="stat-value" id="testsRun">0</div><div class="stat-label">Requêtes</div></div>
+            <div class="stat"><div class="stat-value" id="testsPassed">0</div><div class="stat-label">Succès</div></div>
+            <div class="stat"><div class="stat-value" id="testsFailed">0</div><div class="stat-label">Échecs</div></div>
+            <div class="stat"><div class="stat-value" id="avgTime">0ms</div><div class="stat-label">Temps moyen</div></div>
+        </div>
+
+        <div class="grid">
+            <!-- LOGIN -->
+            <div class="card">
+                <h2>1️⃣ Login <span class="method-badge post">POST</span></h2>
+                <div class="info-box">
+                    Utilise les identifiants créés via <code>app:api-user:create</code>
+                </div>
+
+                <div class="form-group">
+                    <label>Email:</label>
+                    <input type="email" id="loginEmail" value="alice@org1.com">
+                </div>
+                <div class="form-group">
+                    <label>Password:</label>
+                    <input type="password" id="loginPassword" value="alice123">
+                </div>
+                <button onclick="login()">🔓 Se connecter</button>
+                <div id="loginResponse" class="response-box" style="display:none;"></div>
+            </div>
+
+            <!-- ME / SESSION -->
+            <div class="card">
+                <h2>2️⃣ Qui suis-je ? <span class="method-badge get">GET</span></h2>
+                <div class="info-box">
+                    <code>/api/auth/me</code> — utilise le token courant automatiquement
+                </div>
+
+                <button onclick="callMe()">👤 Récupérer mon profil</button>
+                <button class="secondary" onclick="logout()">🚪 Effacer la session</button>
+
+                <div id="meResponse" class="response-box" style="display:none;"></div>
+            </div>
+
+            <!-- REFRESH TOKEN -->
+            <div class="card">
+                <h2>3️⃣ Refresh Token <span class="method-badge post">POST</span></h2>
+                <div class="warn-box">
+                    ⚠️ Chaque refresh invalide l'ancien refresh_token (rotation). Réutiliser un ancien token = compte verrouillé.
+                </div>
+
+                <button onclick="refreshToken()">🔄 Rafraîchir le token</button>
+                <button class="secondary" onclick="simulateTokenReuse()">☠️ Simuler un vol (réutiliser ancien token)</button>
+
+                <div id="refreshResponse" class="response-box" style="display:none;"></div>
+            </div>
+
+            <!-- DECODE TOKEN -->
+            <div class="card">
+                <h2>4️⃣ Décoder le JWT</h2>
+                <div class="info-box">Vérifie org_id, roles, exp visuellement</div>
+
+                <button onclick="decodeCurrentToken()">🔍 Décoder le token courant</button>
+
+                <div id="decodeClaims" class="decoded-claims" style="display:none;"></div>
+                <div id="decodeResponse" class="response-box" style="display:none;"></div>
+            </div>
+
+            <!-- TRAININGS (tenant isolation test) -->
+            <div class="card full-width">
+                <h2>5️⃣ Test Isolation Tenant — /api/v1/trainings <span class="method-badge get">GET</span></h2>
+                <div class="info-box">
+                    Connecte-toi avec 2 comptes d'organisations différentes et vérifie que chacun ne voit QUE ses propres formations (organization_id doit correspondre).
+                </div>
+
+                <div class="tabs">
+                    <button class="tab-btn active" onclick="listTrainings()">📋 Lister mes formations</button>
+                    <button class="tab-btn" onclick="createTraining()">➕ Créer une formation</button>
+                </div>
+
+                <div class="form-group" id="createTrainingForm" style="display:none;">
+                    <label>Titre de la formation:</label>
+                    <input type="text" id="newTrainingTitle" placeholder="Formation React avancé" value="Formation Test">
+                    <button onclick="submitTraining()" style="margin-top:10px;">Créer</button>
+                </div>
+
+                <div id="trainingsResponse" class="response-box" style="display:none;"></div>
+            </div>
+
+            <!-- CUSTOM REQUEST -->
+            <div class="card full-width">
+                <h2>6️⃣ Requête personnalisée</h2>
+
+                <div class="grid" style="grid-template-columns: 1fr 1fr; margin-top:0;">
+                    <div class="form-group">
+                        <label>Méthode:</label>
+                        <select id="customMethod">
+                            <option>GET</option><option>POST</option><option>PUT</option><option>DELETE</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>URL relative:</label>
+                        <input type="text" id="customUrl" value="/api/v1/trainings">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Body (JSON):</label>
+                    <textarea id="customBody" placeholder='{"title": "..."}'></textarea>
+                </div>
+
+                <label style="display:flex; align-items:center; gap:8px; margin-bottom:10px; font-weight:400;">
+                    <input type="checkbox" id="useAuthToken" checked style="width:auto;">
+                    Inclure automatiquement le Bearer token courant
+                </label>
+
+                <button onclick="customRequest()">📤 Envoyer</button>
+                <div id="customResponse" class="response-box" style="display:none;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let stats = { run: 0, passed: 0, failed: 0, times: [] };
+        let session = { accessToken: null, refreshToken: null, oldRefreshToken: null, email: null, orgId: null, expiresAt: null };
+        const baseUrl = window.location.origin;
+
+        function updateStats() {
+            document.getElementById('testsRun').textContent = stats.run;
+            document.getElementById('testsPassed').textContent = stats.passed;
+            document.getElementById('testsFailed').textContent = stats.failed;
+            const avg = stats.times.length ? Math.round(stats.times.reduce((a,b)=>a+b)/stats.times.length) : 0;
+            document.getElementById('avgTime').textContent = avg + 'ms';
+        }
+
+        function updateSessionBar() {
+            const badge = document.getElementById('sessionBadge');
+            if (session.accessToken) {
+                badge.textContent = 'Connecté';
+                badge.className = 'badge';
+                document.getElementById('sessionUser').textContent = session.email || '—';
+                document.getElementById('sessionOrg').textContent = 'Organisation: ' + (session.orgId || '—');
+                document.getElementById('tokenExpiry').textContent = 'Expire: ' + (session.expiresAt || '—');
+            } else {
+                badge.textContent = 'Non connecté';
+                badge.className = 'badge off';
+                document.getElementById('sessionUser').textContent = 'Aucun utilisateur';
+                document.getElementById('sessionOrg').textContent = 'Organisation: —';
+                document.getElementById('tokenExpiry').textContent = 'Expire: —';
+            }
+        }
+
+        function showResponse(id, data, ok=true) {
+            const el = document.getElementById(id);
+            el.textContent = typeof data === 'string' ? data : JSON.stringify(data, null, 2);
+            el.className = `response-box ${ok ? 'success' : 'error'}`;
+            el.style.display = 'block';
+            stats.run++; ok ? stats.passed++ : stats.failed++;
+            updateStats();
+        }
+
+        async function timedFetch(url, options) {
+            const start = performance.now();
+            const response = await fetch(url, options);
+            stats.times.push(performance.now() - start);
+            return response;
+        }
+
+        function authHeaders(extra = {}) {
+            const h = { ...extra };
+            if (session.accessToken) h['Authorization'] = `Bearer ${session.accessToken}`;
+            return h;
+        }
+
+        async function login() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+
+            const body = { email, password };
+
+            try {
+                const response = await timedFetch(`${baseUrl}/api/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+                const data = await response.json();
+
+                if (response.ok) {
+                    session.accessToken = data.access_token;
+                    session.refreshToken = data.refresh_token;
+                    session.email = data.user?.email;
+                    session.orgId = data.user?.organization_id;
+                    session.expiresAt = new Date(Date.now() + (data.expires_in || 900) * 1000).toLocaleTimeString();
+                    updateSessionBar();
+                }
+
+                showResponse('loginResponse', data, response.ok);
+            } catch (e) {
+                showResponse('loginResponse', `Erreur: ${e.message}`, false);
+            }
+        }
+
+        async function callMe() {
+            if (!session.accessToken) {
+                showResponse('meResponse', 'Connecte-toi d\'abord', false);
+                return;
+            }
+            try {
+                const response = await timedFetch(`${baseUrl}/api/auth/me`, { headers: authHeaders() });
+                const data = await response.json();
+                showResponse('meResponse', data, response.ok);
+            } catch (e) {
+                showResponse('meResponse', `Erreur: ${e.message}`, false);
+            }
+        }
+
+        function logout() {
+            session = { accessToken: null, refreshToken: null, oldRefreshToken: null, email: null, orgId: null, expiresAt: null };
+            updateSessionBar();
+            showResponse('meResponse', 'Session effacée localement', true);
+        }
+
+        async function refreshToken() {
+            if (!session.refreshToken) {
+                showResponse('refreshResponse', 'Aucun refresh_token en session, connecte-toi d\'abord', false);
+                return;
+            }
+            try {
+                const response = await timedFetch(`${baseUrl}/api/auth/refresh`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ refresh_token: session.refreshToken })
+                });
+                const data = await response.json();
+
+                if (response.ok) {
+                    session.oldRefreshToken = session.refreshToken; // garde l'ancien pour tester la réutilisation
+                    session.accessToken = data.access_token;
+                    session.refreshToken = data.refresh_token;
+                    session.expiresAt = new Date(Date.now() + (data.expires_in || 900) * 1000).toLocaleTimeString();
+                    updateSessionBar();
+                }
+
+                showResponse('refreshResponse', data, response.ok);
+            } catch (e) {
+                showResponse('refreshResponse', `Erreur: ${e.message}`, false);
+            }
+        }
+
+        async function simulateTokenReuse() {
+            if (!session.oldRefreshToken) {
+                showResponse('refreshResponse', 'Fais d\'abord un refresh normal pour avoir un ancien token à rejouer', false);
+                return;
+            }
+            try {
+                const response = await timedFetch(`${baseUrl}/api/auth/refresh`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ refresh_token: session.oldRefreshToken })
+                });
+                const data = await response.json();
+                // On s'attend à un rejet ici (403) -> c'est un succès du test de sécurité
+                showResponse('refreshResponse', `Status ${response.status} (rejet attendu = sécurité OK)\n${JSON.stringify(data, null, 2)}`, response.status === 403);
+            } catch (e) {
+                showResponse('refreshResponse', `Erreur: ${e.message}`, false);
+            }
+        }
+
+        function decodeCurrentToken() {
+            if (!session.accessToken) {
+                showResponse('decodeResponse', 'Aucun token en session', false);
+                document.getElementById('decodeClaims').style.display = 'none';
+                return;
+            }
+            try {
+                const parts = session.accessToken.split('.');
+                const payload = JSON.parse(atob(parts[1]));
+
+                const claimsEl = document.getElementById('decodeClaims');
+                claimsEl.innerHTML = Object.entries(payload).map(([k,v]) => `
+                    <div class="claim-item">
+                        <span class="k">${k}</span>
+                        <span class="v">${typeof v === 'object' ? JSON.stringify(v) : v}</span>
+                    </div>
+                `).join('');
+                claimsEl.style.display = 'grid';
+
+                showResponse('decodeResponse', payload, true);
+            } catch (e) {
+                showResponse('decodeResponse', `Erreur de décodage: ${e.message}`, false);
+            }
+        }
+
+        function listTrainings() {
+            setActiveTab(0);
+            document.getElementById('createTrainingForm').style.display = 'none';
+            fetchTrainings();
+        }
+
+        function createTraining() {
+            setActiveTab(1);
+            document.getElementById('createTrainingForm').style.display = 'block';
+        }
+
+        function setActiveTab(index) {
+            document.querySelectorAll('.tab-btn').forEach((btn, i) => {
+                btn.classList.toggle('active', i === index);
+            });
+        }
+
+        async function fetchTrainings() {
+            if (!session.accessToken) {
+                showResponse('trainingsResponse', 'Connecte-toi d\'abord', false);
+                return;
+            }
+            try {
+                const response = await timedFetch(`${baseUrl}/api/v1/trainings`, { headers: authHeaders() });
+                const data = await response.json();
+                showResponse('trainingsResponse', data, response.ok);
+            } catch (e) {
+                showResponse('trainingsResponse', `Erreur: ${e.message}`, false);
+            }
+        }
+
+        async function submitTraining() {
+            if (!session.accessToken) {
+                showResponse('trainingsResponse', 'Connecte-toi d\'abord', false);
+                return;
+            }
+            const title = document.getElementById('newTrainingTitle').value;
+            try {
+                const response = await timedFetch(`${baseUrl}/api/v1/trainings`, {
+                    method: 'POST',
+                    headers: authHeaders({ 'Content-Type': 'application/json' }),
+                    body: JSON.stringify({ title })
+                });
+                const data = await response.json();
+                showResponse('trainingsResponse', data, response.ok);
+            } catch (e) {
+                showResponse('trainingsResponse', `Erreur: ${e.message}`, false);
+            }
+        }
+
+        async function customRequest() {
+            const method = document.getElementById('customMethod').value;
+            const url = document.getElementById('customUrl').value;
+            const bodyStr = document.getElementById('customBody').value;
+            const useAuth = document.getElementById('useAuthToken').checked;
+
+            try {
+                const options = { method, headers: useAuth ? authHeaders({'Content-Type':'application/json'}) : {'Content-Type':'application/json'} };
+                if (method !== 'GET' && bodyStr) options.body = bodyStr;
+
+                const response = await timedFetch(`${baseUrl}${url}`, options);
+                const text = await response.text();
+                let data = text;
+                try { data = JSON.parse(text); } catch(e) {}
+
+                showResponse('customResponse', `Status: ${response.status}\n${typeof data==='string'?data:JSON.stringify(data,null,2)}`, response.ok);
+            } catch (e) {
+                showResponse('customResponse', `Erreur: ${e.message}`, false);
+            }
+        }
+
+        updateSessionBar();
+    </script>
+</body>
+</html>
