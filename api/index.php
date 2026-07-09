@@ -12,6 +12,13 @@ if (!getenv('APP_DEBUG')) {
 	$_SERVER['APP_DEBUG'] = '0';
 }
 
+if (!getenv('APP_RUNTIME_OPTIONS')) {
+	$runtimeOptions = '{"disable_dotenv":true}';
+	putenv('APP_RUNTIME_OPTIONS=' . $runtimeOptions);
+	$_ENV['APP_RUNTIME_OPTIONS'] = $runtimeOptions;
+	$_SERVER['APP_RUNTIME_OPTIONS'] = $runtimeOptions;
+}
+
 if (!getenv('APP_SECRET')) {
 	$defaultSecret = 'change-this-in-vercel-env';
 	putenv('APP_SECRET=' . $defaultSecret);
