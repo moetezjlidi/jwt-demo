@@ -85,4 +85,4 @@ if (!$hasJwtKeyFiles) {
 	$_SERVER['JWT_PUBLIC_KEY'] = $publicPath;
 }
 
-require __DIR__ . '/../public/index.php';
+return require __DIR__ . '/../public/index.php';
