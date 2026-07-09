@@ -11,15 +11,18 @@ RUN apt-get update && apt-get install -y \
 
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
+ENV COMPOSER_ALLOW_SUPERUSER=1
+
 WORKDIR /app
 COPY . .
 
+RUN composer config --global allow-plugins true
 RUN composer install --no-dev --optimize-autoloader --no-interaction --no-scripts
 RUN composer dump-autoload --optimize --no-dev
-RUN test -d vendor/symfony/runtime && echo "OK symfony runtime present" || echo "ERREUR symfony runtime MISSING"
+RUN test -f vendor/autoload_runtime.php && echo "OK autoload_runtime present" || echo "ERREUR autoload_runtime MISSING"
 
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
 EXPOSE 8080
-ENTRYPOINT ["/entrypoint.sh"] 
+ENTRYPOINT ["/entrypoint.sh"]
