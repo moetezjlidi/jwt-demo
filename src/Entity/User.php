@@ -7,7 +7,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\UserInterface;
 
 #[ORM\Entity]
-#[ORM\Table(name: 'user')]
+#[ORM\Table(name: 'app_user')]
 class User implements UserInterface
 {
     #[ORM\Id]
