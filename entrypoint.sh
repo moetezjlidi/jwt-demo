@@ -1,7 +1,7 @@
 #!/bin/sh
 set -e
 
-echo "=== Génération des clés JWT (si absentes) ==="
+echo "=== Generation cles JWT ==="
 mkdir -p config/jwt
 if [ ! -f config/jwt/private.pem ]; then
     openssl genrsa -out config/jwt/private.pem 4096
@@ -14,5 +14,5 @@ php bin/console cache:clear --env=prod
 echo "=== Migrations ==="
 php bin/console doctrine:migrations:migrate --no-interaction --env=prod
 
-echo "=== Démarrage du serveur sur le port $PORT ==="
+echo "=== Demarrage serveur port $PORT ==="
 exec php -S 0.0.0.0:${PORT:-8080} -t public
