@@ -1,6 +1,8 @@
 #!/bin/sh
 set -e
 
+touch .env
+
 echo "=== Generation cles JWT ==="
 mkdir -p config/jwt
 if [ ! -f config/jwt/private.pem ]; then
