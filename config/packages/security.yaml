@@ -35,7 +35,7 @@ security:
                 password_path:   password
                 success_handler: lexik_jwt_authentication.handler.authentication_success
                 failure_handler: lexik_jwt_authentication.handler.authentication_failure
-            provider: users_in_memory
+            provider: api_users
 
         shibboleth:
             pattern: ^/auth/shibboleth
@@ -64,7 +64,7 @@ security:
         - { path: ^/api/auth/refresh, roles: PUBLIC_ACCESS }
         - { path: ^/api/auth/me,      roles: IS_AUTHENTICATED_FULLY }
         - { path: ^/api/v1,           roles: IS_AUTHENTICATED_FULLY }
-        - { path: ^/api,              roles: ROLE_USER }
+        
 
 
 when@test:
