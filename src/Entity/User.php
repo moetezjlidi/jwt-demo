@@ -42,7 +42,10 @@ class User implements UserInterface
     public function getId(): int { return $this->id; }
     public function getUserIdentifier(): string { return $this->username; }
     public function getPassword(): ?string { return $this->password; }
-    
+    public function getOrganizationId(): string
+{
+    return $this->organization_id;
+}
     public function getRoles(): array 
     { 
         if (!$this->rolesData) {

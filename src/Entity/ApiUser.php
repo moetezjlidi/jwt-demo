@@ -69,7 +69,7 @@ class ApiUser implements UserInterface, PasswordAuthenticatedUserInterface
      */
     public function getOrganizationId(): string
     {
-        return $this->user->organization_id;
+        return $this->user->getOrganizationId();
     }
 
     public function getUser(): User { return $this->user; }
