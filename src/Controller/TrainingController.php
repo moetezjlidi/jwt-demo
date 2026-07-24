@@ -31,9 +31,16 @@ final class TrainingController extends AbstractController
 
         $trainings = $this->trainingRepo->findByOrganization($user->getOrganizationId());
 
-        return $this->json(array_map(fn (Training $t) => [
+       return $this->json(array_map(fn (Training $t) => [
             'id' => $t->getId(),
+            'numero' => $t->getNumero(),
             'title' => $t->getTitle(),
+            'thematique' => $t->getThematique(),
+            'nombre_participants' => $t->getNombreParticipants(),
+            'nombre_inscriptions' => $t->getNombreInscriptions(),
+            'total_heures' => $t->getTotalHeures(),
+            'total_jours' => $t->getTotalJours(),
+            'superviseur' => $t->getSuperviseur(),
             'organization_id' => $t->getOrganizationId(),
             'created_by' => $t->getCreatedByEmail(),
             'created_at' => $t->getCreatedAt()->format(DATE_ATOM),
