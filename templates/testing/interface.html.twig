@@ -353,6 +353,22 @@
                 <div id="trainingsResponse" class="response-box" style="display:none;"></div>
             </div>
 
+            <!-- SESSIONS -->
+            <div class="card full-width">
+                <h2>6️⃣ Sessions d'une formation — /api/v1/trainings/{id}/sessions <span class="method-badge get">GET</span></h2>
+                <div class="info-box">
+                    Entre l'ID d'une formation (visible dans la réponse de la section précédente) pour voir ses sessions et leurs horaires détaillés.
+                </div>
+
+                <div class="form-group">
+                    <label>ID de la formation:</label>
+                    <input type="text" id="sessionsTrainingId" placeholder="1" value="1">
+                </div>
+
+                <button onclick="fetchSessions()">📅 Lister les sessions</button>
+
+                <div id="sessionsResponse" class="response-box" style="display:none;"></div>
+            </div>
             <!-- CUSTOM REQUEST -->
             <div class="card full-width">
                 <h2>6️⃣ Requête personnalisée</h2>
@@ -398,6 +414,25 @@
             const avg = stats.times.length ? Math.round(stats.times.reduce((a,b)=>a+b)/stats.times.length) : 0;
             document.getElementById('avgTime').textContent = avg + 'ms';
         }
+
+        async function fetchSessions() {
+    if (!session.accessToken) {
+        showResponse('sessionsResponse', 'Connecte-toi d\'abord', false);
+        return;
+    }
+    const trainingId = document.getElementById('sessionsTrainingId').value;
+    if (!trainingId) {
+        showResponse('sessionsResponse', 'Entre un ID de formation', false);
+        return;
+    }
+    try {
+        const response = await timedFetch(`${baseUrl}/api/v1/trainings/${trainingId}/sessions`, { headers: authHeaders() });
+        const data = await response.json();
+        showResponse('sessionsResponse', data, response.ok);
+    } catch (e) {
+        showResponse('sessionsResponse', `Erreur: ${e.message}`, false);
+    }
+}
 
         function updateSessionBar() {
             const badge = document.getElementById('sessionBadge');
