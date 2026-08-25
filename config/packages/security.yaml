@@ -57,7 +57,7 @@ security:
             provider: users_in_memory
 
     access_control:
-        - { path: ^/api/v1/admin,     roles: [ROLE_PLATFORM_ADMIN] }
+        - { path: ^/api/v1/admin,     roles: ROLE_PLATFORM_ADMIN }
         - { path: ^/api/v1,           roles: IS_AUTHENTICATED_FULLY }
         - { path: ^/testing,          roles: PUBLIC_ACCESS }
         - { path: ^/mock-shibboleth,  roles: PUBLIC_ACCESS }
