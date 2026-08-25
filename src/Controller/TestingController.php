@@ -15,4 +15,10 @@ final class TestingController extends AbstractController
     {
         return $this->render('testing/interface.html.twig');
     }
+
+    #[Route('/admin', name: 'testing_admin_interface')]
+    public function adminTestingInterface(): Response
+    {
+        return $this->render('testing/admin.html.twig');
+    }
 } 
