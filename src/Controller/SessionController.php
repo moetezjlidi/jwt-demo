@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
-use App\Entity\ApiUser;
 use App\Repository\SessionRepository;
 use App\Repository\SessionScheduleRepository;
+use App\Repository\TrainingRepository;
+use App\Security\ApiKeyUser;
+use App\Security\OrganizationScopedUser;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Attribute\Route;
@@ -17,13 +19,22 @@ final class SessionController extends AbstractController
     public function __construct(
         private SessionRepository $sessionRepo,
         private SessionScheduleRepository $scheduleRepo,
+        private TrainingRepository $trainingRepo,
     ) {}
 
     #[Route('/api/v1/trainings/{id}/sessions', name: 'api_sessions_list', methods: ['GET'])]
-    public function list(int $id, #[CurrentUser] ?ApiUser $user): JsonResponse
+    public function list(int $id, #[CurrentUser] ?OrganizationScopedUser $user): JsonResponse
     {
         if (!$user) {
             return $this->json(['error' => 'Not authenticated'], 401);
+        }
+
+        if ($user instanceof ApiKeyUser && !$user->hasPermission('sessions:read')) {
+            return $this->json(['error' => 'API key lacks sessions:read permission'], 403);
+        }
+
+        if (!$this->trainingRepo->findOneByIdAndOrganization($id, $user->getOrganizationId())) {
+            return $this->json(['error' => 'Not found'], 404);
         }
 
         $sessions = $this->sessionRepo->findByTraining($id);

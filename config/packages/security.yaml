@@ -49,6 +49,8 @@ security:
             stateless: true
             provider: api_users
             jwt: ~
+            custom_authenticators:
+                - App\Security\ApiKeyAuthenticator
 
         main:
             lazy: true

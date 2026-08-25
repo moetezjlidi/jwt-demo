@@ -7,6 +7,8 @@ namespace App\Controller;
 use App\Entity\ApiUser;
 use App\Entity\Training;
 use App\Repository\TrainingRepository;
+use App\Security\ApiKeyUser;
+use App\Security\OrganizationScopedUser;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -23,10 +25,14 @@ final class TrainingController extends AbstractController
     }
 
     #[Route('/api/v1/trainings', name: 'api_trainings_list', methods: ['GET'])]
-    public function list(#[CurrentUser] ?ApiUser $user): JsonResponse
+    public function list(#[CurrentUser] ?OrganizationScopedUser $user): JsonResponse
     {
         if (!$user) {
             return $this->json(['error' => 'Not authenticated'], 401);
+        }
+
+        if ($user instanceof ApiKeyUser && !$user->hasPermission('trainings:read')) {
+            return $this->json(['error' => 'API key lacks trainings:read permission'], 403);
         }
 
         $trainings = $this->trainingRepo->findByOrganization($user->getOrganizationId());

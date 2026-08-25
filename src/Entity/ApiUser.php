@@ -2,6 +2,7 @@
 // src/Entity/ApiUser.php
 namespace App\Entity;
 
+use App\Security\OrganizationScopedUser;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
@@ -9,7 +10,7 @@ use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 #[ORM\Entity]
 #[ORM\Table(name: 'api_user')]
 #[ORM\UniqueConstraint(columns: ['email'])]
-class ApiUser implements UserInterface, PasswordAuthenticatedUserInterface
+class ApiUser implements UserInterface, PasswordAuthenticatedUserInterface, OrganizationScopedUser
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]

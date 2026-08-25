@@ -20,4 +20,9 @@ class TrainingRepository extends ServiceEntityRepository
     {
         return $this->findBy(['organizationId' => $organizationId], ['createdAt' => 'DESC']);
     }
+
+    public function findOneByIdAndOrganization(int $id, string $organizationId): ?Training
+    {
+        return $this->findOneBy(['id' => $id, 'organizationId' => $organizationId]);
+    }
 }

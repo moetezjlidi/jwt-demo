@@ -18,6 +18,8 @@ use Symfony\Component\Security\Http\Attribute\CurrentUser;
 #[Route('/api/v1/admin/api-keys')]
 final class ApiKeyController extends AbstractController
 {
+    private const ALLOWED_PERMISSIONS = ['trainings:read', 'sessions:read'];
+
     public function __construct(
         private ApiKeyRepository $apiKeyRepo,
         private EntityManagerInterface $em,
@@ -41,6 +43,11 @@ final class ApiKeyController extends AbstractController
 
         if ($name === '') {
             return $this->json(['error' => 'name is required'], 400);
+        }
+
+        $invalid = array_diff($permissions, self::ALLOWED_PERMISSIONS);
+        if ($invalid !== []) {
+            return $this->json(['error' => 'Unknown permissions: ' . implode(', ', $invalid)], 400);
         }
 
         $rawKey = bin2hex(random_bytes(24)); // 48 caractères
@@ -167,6 +174,10 @@ final class ApiKeyController extends AbstractController
             $apiKey->setName($data['name']);
         }
         if (isset($data['permissions'])) {
+            $invalid = array_diff($data['permissions'], self::ALLOWED_PERMISSIONS);
+            if ($invalid !== []) {
+                return $this->json(['error' => 'Unknown permissions: ' . implode(', ', $invalid)], 400);
+            }
             $apiKey->setPermissions($data['permissions']);
         }
 

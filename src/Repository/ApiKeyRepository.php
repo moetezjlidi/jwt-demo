@@ -22,4 +22,9 @@ class ApiKeyRepository extends ServiceEntityRepository
     {
         return $this->findOneBy(['id' => $id, 'organizationId' => $organizationId]);
     }
+
+    public function findOneActiveByHash(string $keyHash): ?ApiKey
+    {
+        return $this->findOneBy(['keyHash' => $keyHash, 'status' => 'active']);
+    }
 }
