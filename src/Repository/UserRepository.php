@@ -25,4 +25,18 @@ class UserRepository extends ServiceEntityRepository
     {
         return $this->findBy(['organization_id' => $organizationId]);
     }
+
+    /**
+     * @return string[] distinct organization ids across all users
+     */
+    public function findAllOrganizationIds(): array
+    {
+        $rows = $this->createQueryBuilder('u')
+            ->select('DISTINCT u.organization_id AS org_id')
+            ->orderBy('u.organization_id', 'ASC')
+            ->getQuery()
+            ->getResult();
+
+        return array_column($rows, 'org_id');
+    }
 }

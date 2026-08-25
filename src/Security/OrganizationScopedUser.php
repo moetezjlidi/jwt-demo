@@ -6,5 +6,6 @@ namespace App\Security;
 
 interface OrganizationScopedUser
 {
-    public function getOrganizationId(): string;
+    /** @return string[] organizations this principal is allowed to access */
+    public function getOrganizationIds(): array;
 }

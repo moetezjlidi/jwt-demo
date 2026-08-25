@@ -18,9 +18,9 @@ final class ApiKeyUser implements UserInterface, OrganizationScopedUser
         return $this->apiKey;
     }
 
-    public function getOrganizationId(): string
+    public function getOrganizationIds(): array
     {
-        return $this->apiKey->getOrganizationId();
+        return $this->apiKey->getOrganizationIds();
     }
 
     public function hasPermission(string $permission): bool

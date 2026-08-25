@@ -73,6 +73,11 @@ class ApiUser implements UserInterface, PasswordAuthenticatedUserInterface, Orga
         return $this->user->getOrganizationId();
     }
 
+    public function getOrganizationIds(): array
+    {
+        return [$this->getOrganizationId()];
+    }
+
     public function getUser(): User { return $this->user; }
     public function setUser(User $user): self { $this->user = $user; return $this; }
 

@@ -33,7 +33,7 @@ final class SessionController extends AbstractController
             return $this->json(['error' => 'API key lacks sessions:read permission'], 403);
         }
 
-        if (!$this->trainingRepo->findOneByIdAndOrganization($id, $user->getOrganizationId())) {
+        if (!$this->trainingRepo->findOneByIdAndOrganizations($id, $user->getOrganizationIds())) {
             return $this->json(['error' => 'Not found'], 404);
         }
 

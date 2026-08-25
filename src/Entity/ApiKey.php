@@ -15,8 +15,8 @@ class ApiKey
     #[ORM\Column]
     private int $id;
 
-    #[ORM\Column]
-    private string $organizationId;
+    #[ORM\Column(type: 'json')]
+    private array $organizationIds;
 
     #[ORM\Column]
     private string $name;
@@ -42,9 +42,9 @@ class ApiKey
     #[ORM\Column]
     private \DateTimeImmutable $createdAt;
 
-    public function __construct(string $organizationId, string $name, string $keyHash, string $keyPrefix, array $permissions = [])
+    public function __construct(array $organizationIds, string $name, string $keyHash, string $keyPrefix, array $permissions = [])
     {
-        $this->organizationId = $organizationId;
+        $this->organizationIds = array_values(array_unique($organizationIds));
         $this->name = $name;
         $this->keyHash = $keyHash;
         $this->keyPrefix = $keyPrefix;
@@ -53,7 +53,10 @@ class ApiKey
     }
 
     public function getId(): int { return $this->id; }
-    public function getOrganizationId(): string { return $this->organizationId; }
+
+    /** @return string[] */
+    public function getOrganizationIds(): array { return $this->organizationIds; }
+    public function hasOrganization(string $organizationId): bool { return in_array($organizationId, $this->organizationIds, true); }
     public function getName(): string { return $this->name; }
     public function setName(string $name): self { $this->name = $name; return $this; }
 
@@ -80,7 +83,7 @@ class ApiKey
     {
         return [
             'id' => $this->id,
-            'organization_id' => $this->organizationId,
+            'organization_ids' => $this->organizationIds,
             'name' => $this->name,
             'key_prefix' => $this->keyPrefix . '...',
             'permissions' => $this->permissions,

@@ -25,4 +25,27 @@ class TrainingRepository extends ServiceEntityRepository
     {
         return $this->findOneBy(['id' => $id, 'organizationId' => $organizationId]);
     }
+
+    /** @param string[] $organizationIds */
+    public function findByOrganizations(array $organizationIds): array
+    {
+        return $this->createQueryBuilder('t')
+            ->where('t.organizationId IN (:ids)')
+            ->setParameter('ids', $organizationIds)
+            ->orderBy('t.createdAt', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /** @param string[] $organizationIds */
+    public function findOneByIdAndOrganizations(int $id, array $organizationIds): ?Training
+    {
+        return $this->createQueryBuilder('t')
+            ->where('t.id = :id')
+            ->andWhere('t.organizationId IN (:ids)')
+            ->setParameter('id', $id)
+            ->setParameter('ids', $organizationIds)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
 }

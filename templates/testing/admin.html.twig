@@ -256,6 +256,8 @@
                     <input type="text" id="newApiKeyName" placeholder="Intégration partenaire X" value="Integration Test">
                     <label style="margin-top:10px;">Permissions (séparées par virgules):</label>
                     <input type="text" id="newApiKeyPermissions" placeholder="trainings:read,trainings:write" value="trainings:read">
+                    <label style="margin-top:10px;">Organisation(s):</label>
+                    <div id="orgCheckboxes" class="info-box">Connecte-toi pour voir les organisations disponibles.</div>
                     <button onclick="createApiKey()" style="margin-top:10px;">Créer la clé</button>
                 </div>
 
@@ -350,6 +352,7 @@
                     session.orgId = data.user?.organization_id;
                     session.expiresAt = new Date(Date.now() + (data.expires_in || 900) * 1000).toLocaleTimeString();
                     updateSessionBar();
+                    loadOrganizations();
                 }
 
                 showResponse('loginResponse', data, response.ok);
@@ -362,6 +365,31 @@
             session = { accessToken: null, refreshToken: null, email: null, orgId: null, expiresAt: null };
             updateSessionBar();
             showResponse('loginResponse', 'Session effacée localement', true);
+            document.getElementById('orgCheckboxes').innerHTML = 'Connecte-toi pour voir les organisations disponibles.';
+        }
+
+        async function loadOrganizations() {
+            const container = document.getElementById('orgCheckboxes');
+            if (!session.accessToken) {
+                container.innerHTML = 'Connecte-toi pour voir les organisations disponibles.';
+                return;
+            }
+            try {
+                const response = await timedFetch(`${baseUrl}/api/v1/admin/organizations`, { headers: authHeaders() });
+                const data = await response.json();
+                if (!response.ok || !Array.isArray(data)) {
+                    container.innerHTML = 'Impossible de charger les organisations.';
+                    return;
+                }
+                container.innerHTML = data.map((org, i) => `
+                    <label style="display:flex; align-items:center; gap:8px; font-weight:400; margin-bottom:6px;">
+                        <input type="checkbox" class="org-checkbox" value="${org.id}" style="width:auto;" ${i === 0 ? 'checked' : ''}>
+                        ${org.id}
+                    </label>
+                `).join('') || 'Aucune organisation trouvée.';
+            } catch (e) {
+                container.innerHTML = `Erreur: ${e.message}`;
+            }
         }
 
         function setApiKeyTab(index) {
@@ -380,12 +408,18 @@
             const name = document.getElementById('newApiKeyName').value;
             const permissions = document.getElementById('newApiKeyPermissions').value
                 .split(',').map(p => p.trim()).filter(Boolean);
+            const organization_ids = Array.from(document.querySelectorAll('.org-checkbox:checked')).map(el => el.value);
+
+            if (organization_ids.length === 0) {
+                showResponse('apiKeysResponse', 'Sélectionne au moins une organisation', false);
+                return;
+            }
 
             try {
                 const response = await timedFetch(`${baseUrl}/api/v1/admin/api-keys`, {
                     method: 'POST',
                     headers: authHeaders({ 'Content-Type': 'application/json' }),
-                    body: JSON.stringify({ name, permissions })
+                    body: JSON.stringify({ name, permissions, organization_ids })
                 });
                 const data = await response.json();
 

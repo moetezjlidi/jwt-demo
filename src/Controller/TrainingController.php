@@ -35,7 +35,7 @@ final class TrainingController extends AbstractController
             return $this->json(['error' => 'API key lacks trainings:read permission'], 403);
         }
 
-        $trainings = $this->trainingRepo->findByOrganization($user->getOrganizationId());
+        $trainings = $this->trainingRepo->findByOrganizations($user->getOrganizationIds());
 
        return $this->json(array_map(fn (Training $t) => [
             'id' => $t->getId(),

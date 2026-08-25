@@ -8,6 +8,7 @@ use App\Entity\ApiKey;
 use App\Entity\ApiUser;
 use App\Entity\AuditLog;
 use App\Repository\ApiKeyRepository;
+use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -22,12 +23,15 @@ final class ApiKeyController extends AbstractController
 
     public function __construct(
         private ApiKeyRepository $apiKeyRepo,
+        private UserRepository $userRepo,
         private EntityManagerInterface $em,
     ) {}
 
     /**
      * POST /api/v1/admin/api-keys
-     * { "name": "Intégration partenaire X", "permissions": ["trainings:read", "trainings:write"] }
+     * { "name": "Intégration partenaire X", "permissions": ["trainings:read"], "organization_ids": ["org1"] }
+     * "organization_ids" is only honored for ROLE_PLATFORM_ADMIN — every other caller
+     * gets a key scoped to their own organization, regardless of what's submitted.
      * Retourne la clé en clair UNE SEULE FOIS — elle n'est jamais stockée en clair.
      */
     #[Route('', methods: ['POST'])]
@@ -50,14 +54,27 @@ final class ApiKeyController extends AbstractController
             return $this->json(['error' => 'Unknown permissions: ' . implode(', ', $invalid)], 400);
         }
 
+        if (in_array('ROLE_PLATFORM_ADMIN', $user->getRoles(), true)) {
+            $organizationIds = array_values(array_unique(array_filter((array) ($data['organization_ids'] ?? []))));
+            if ($organizationIds === []) {
+                return $this->json(['error' => 'organization_ids is required'], 400);
+            }
+            $unknown = array_diff($organizationIds, $this->userRepo->findAllOrganizationIds());
+            if ($unknown !== []) {
+                return $this->json(['error' => 'Unknown organizations: ' . implode(', ', $unknown)], 400);
+            }
+        } else {
+            $organizationIds = [$user->getOrganizationId()];
+        }
+
         $rawKey = bin2hex(random_bytes(24)); // 48 caractères
         $keyHash = hash('sha256', $rawKey);
         $keyPrefix = substr($rawKey, 0, 8);
 
-        $apiKey = new ApiKey($user->getOrganizationId(), $name, $keyHash, $keyPrefix, $permissions);
+        $apiKey = new ApiKey($organizationIds, $name, $keyHash, $keyPrefix, $permissions);
         $this->em->persist($apiKey);
 
-        $this->logAudit($user, 'api_key.created', 'ApiKey', null, ['name' => $name]);
+        $this->logAudit($user, 'api_key.created', 'ApiKey', null, ['name' => $name, 'organization_ids' => $organizationIds]);
 
         $this->em->flush();
 
@@ -78,7 +95,9 @@ final class ApiKeyController extends AbstractController
             return $this->json(['error' => 'Not authenticated'], 401);
         }
 
-        $keys = $this->apiKeyRepo->findByOrganization($user->getOrganizationId());
+        $keys = in_array('ROLE_PLATFORM_ADMIN', $user->getRoles(), true)
+            ? $this->apiKeyRepo->findAllOrdered()
+            : $this->apiKeyRepo->findByOrganization($user->getOrganizationId());
 
         return $this->json(array_map(fn(ApiKey $k) => $k->toArray(), $keys));
     }
@@ -93,7 +112,7 @@ final class ApiKeyController extends AbstractController
             return $this->json(['error' => 'Not authenticated'], 401);
         }
 
-        $apiKey = $this->apiKeyRepo->findOneByIdAndOrganization($id, $user->getOrganizationId());
+        $apiKey = $this->findAccessibleKey($id, $user);
         if (!$apiKey) {
             return $this->json(['error' => 'Not found'], 404);
         }
@@ -111,7 +130,7 @@ final class ApiKeyController extends AbstractController
             return $this->json(['error' => 'Not authenticated'], 401);
         }
 
-        $apiKey = $this->apiKeyRepo->findOneByIdAndOrganization($id, $user->getOrganizationId());
+        $apiKey = $this->findAccessibleKey($id, $user);
         if (!$apiKey) {
             return $this->json(['error' => 'Not found'], 404);
         }
@@ -134,7 +153,7 @@ final class ApiKeyController extends AbstractController
             return $this->json(['error' => 'Not authenticated'], 401);
         }
 
-        $apiKey = $this->apiKeyRepo->findOneByIdAndOrganization($id, $user->getOrganizationId());
+        $apiKey = $this->findAccessibleKey($id, $user);
         if (!$apiKey) {
             return $this->json(['error' => 'Not found'], 404);
         }
@@ -163,7 +182,7 @@ final class ApiKeyController extends AbstractController
             return $this->json(['error' => 'Not authenticated'], 401);
         }
 
-        $apiKey = $this->apiKeyRepo->findOneByIdAndOrganization($id, $user->getOrganizationId());
+        $apiKey = $this->findAccessibleKey($id, $user);
         if (!$apiKey) {
             return $this->json(['error' => 'Not found'], 404);
         }
@@ -185,6 +204,15 @@ final class ApiKeyController extends AbstractController
         $this->em->flush();
 
         return $this->json($apiKey->toArray());
+    }
+
+    private function findAccessibleKey(int $id, ApiUser $user): ?ApiKey
+    {
+        if (in_array('ROLE_PLATFORM_ADMIN', $user->getRoles(), true)) {
+            return $this->apiKeyRepo->find($id);
+        }
+
+        return $this->apiKeyRepo->findOneByIdAndOrganization($id, $user->getOrganizationId());
     }
 
     private function logAudit(ApiUser $user, string $action, ?string $targetType = null, ?int $targetId = null, ?array $metadata = null): void
