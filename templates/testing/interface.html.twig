@@ -523,6 +523,12 @@
             session = { accessToken: null, refreshToken: null, oldRefreshToken: null, email: null, orgId: null, expiresAt: null };
             updateSessionBar();
             showResponse('meResponse', 'Session effacée localement', true);
+
+            ['trainingsResponse', 'sessionsResponse'].forEach(id => {
+                const el = document.getElementById(id);
+                el.textContent = '';
+                el.style.display = 'none';
+            });
         }
 
         async function refreshToken() {
