@@ -379,7 +379,7 @@
 
                 <div class="tabs">
                     <button class="tab-btn active" onclick="listTrainers()">📋 Lister mes formateurs</button>
-                    <button class="tab-btn" onclick="createTrainer()">➕ Créer un formateur</button>
+                    <button class="tab-btn" id="createTrainerTabBtn" onclick="createTrainer()" style="display:none;">➕ Créer un formateur</button>
                 </div>
 
                 <div class="form-group" id="createTrainerForm" style="display:none;">
@@ -399,7 +399,7 @@
 
     <script>
         let stats = { run: 0, passed: 0, failed: 0, times: [] };
-        let session = { accessToken: null, refreshToken: null, oldRefreshToken: null, email: null, orgId: null, expiresAt: null };
+        let session = { accessToken: null, refreshToken: null, oldRefreshToken: null, email: null, orgId: null, expiresAt: null, roles: [] };
         const baseUrl = window.location.origin;
 
         function updateStats() {
@@ -444,6 +444,22 @@
                 document.getElementById('sessionOrg').textContent = 'Organisation: —';
                 document.getElementById('tokenExpiry').textContent = 'Expire: —';
             }
+            updateTrainerCreateVisibility();
+        }
+
+        function isPlatformAdmin() {
+            return session.roles.includes('ROLE_PLATFORM_ADMIN');
+        }
+
+        function updateTrainerCreateVisibility() {
+            const btn = document.getElementById('createTrainerTabBtn');
+            const isAdmin = isPlatformAdmin();
+            btn.style.display = isAdmin ? '' : 'none';
+            if (!isAdmin) {
+                document.getElementById('createTrainerForm').style.display = 'none';
+                btn.classList.remove('active');
+                document.getElementById('createTrainerForm').parentElement.querySelector('.tab-btn').classList.add('active');
+            }
         }
 
         function showResponse(id, data, ok=true) {
@@ -487,6 +503,7 @@
                     session.refreshToken = data.refresh_token;
                     session.email = data.user?.email;
                     session.orgId = data.user?.organization_id;
+                    session.roles = data.user?.roles || [];
                     session.expiresAt = new Date(Date.now() + (data.expires_in || 900) * 1000).toLocaleTimeString();
                     updateSessionBar();
                 }
@@ -512,7 +529,7 @@
         }
 
         function logout() {
-            session = { accessToken: null, refreshToken: null, oldRefreshToken: null, email: null, orgId: null, expiresAt: null };
+            session = { accessToken: null, refreshToken: null, oldRefreshToken: null, email: null, orgId: null, expiresAt: null, roles: [] };
             updateSessionBar();
             showResponse('meResponse', 'Session effacée localement', true);
 
