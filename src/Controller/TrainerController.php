@@ -43,7 +43,7 @@ final class TrainerController extends AbstractController
             'last_name' => $t->getLastName(),
             'email' => $t->getEmail(),
             'is_archived' => $t->isArchived(),
-            'is_allow_send_mail' => $t->isAllowSendMail(),
+            'is_allow_send_email' => $t->isAllowSendEmail(),
             'is_organization' => $t->isOrganization(),
             'is_public' => $t->isPublic(),
             'comments' => $t->getComments(),
@@ -82,8 +82,8 @@ final class TrainerController extends AbstractController
 
         $trainer = new Trainer($firstName, $lastName, $email, $user->getOrganizationId());
 
-        if (array_key_exists('is_allow_send_mail', $data)) {
-            $trainer->setIsAllowSendMail((bool) $data['is_allow_send_mail']);
+        if (array_key_exists('is_allow_send_email', $data)) {
+            $trainer->setIsAllowSendEmail((bool) $data['is_allow_send_email']);
         }
         if (array_key_exists('is_public', $data)) {
             $trainer->setIsPublic((bool) $data['is_public']);
@@ -100,7 +100,7 @@ final class TrainerController extends AbstractController
             'first_name' => $trainer->getFirstName(),
             'last_name' => $trainer->getLastName(),
             'email' => $trainer->getEmail(),
-            'is_allow_send_mail' => $trainer->isAllowSendMail(),
+            'is_allow_send_email' => $trainer->isAllowSendEmail(),
             'is_public' => $trainer->isPublic(),
             'comments' => $trainer->getComments(),
             'organization_id' => $trainer->getOrganizationId(),

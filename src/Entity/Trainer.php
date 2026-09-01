@@ -31,7 +31,7 @@ class Trainer
     private ?bool $isArchived = false;
 
     #[ORM\Column(nullable: true)]
-    private ?bool $isAllowSendMail = false;
+    private ?bool $isAllowSendEmail = false;
 
     #[ORM\Column(nullable: true)]
     private ?bool $isOrganization = false;
@@ -64,8 +64,8 @@ class Trainer
     public function isArchived(): ?bool { return $this->isArchived; }
     public function setIsArchived(?bool $isArchived): self { $this->isArchived = $isArchived; return $this; }
 
-    public function isAllowSendMail(): ?bool { return $this->isAllowSendMail; }
-    public function setIsAllowSendMail(?bool $isAllowSendMail): self { $this->isAllowSendMail = $isAllowSendMail; return $this; }
+    public function isAllowSendEmail(): ?bool { return $this->isAllowSendEmail; }
+    public function setIsAllowSendEmail(?bool $isAllowSendEmail): self { $this->isAllowSendEmail = $isAllowSendEmail; return $this; }
 
     public function isOrganization(): ?bool { return $this->isOrganization; }
     public function setIsOrganization(?bool $isOrganization): self { $this->isOrganization = $isOrganization; return $this; }
