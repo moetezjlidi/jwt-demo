@@ -42,7 +42,7 @@ class Inscription
     #[ORM\Column(type: 'text', nullable: true)]
     private ?string $refuse = null;
 
-    #[ORM\Column]
+    #[ORM\Column(name: 'diff')]
     private bool $dif = false;
 
     #[ORM\Column]
