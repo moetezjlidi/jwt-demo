@@ -370,37 +370,29 @@
                 <div id="sessionsResponse" class="response-box" style="display:none;"></div>
             </div>
 
-              
-
-            <!-- CUSTOM REQUEST -->
+            <!-- TRAINERS -->
             <div class="card full-width">
-                <h2>6️⃣ Requête personnalisée</h2>
-
-                <div class="grid" style="grid-template-columns: 1fr 1fr; margin-top:0;">
-                    <div class="form-group">
-                        <label>Méthode:</label>
-                        <select id="customMethod">
-                            <option>GET</option><option>POST</option><option>PUT</option><option>DELETE</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>URL relative:</label>
-                        <input type="text" id="customUrl" value="/api/v1/trainings">
-                    </div>
+                <h2>7️⃣ Formateurs — /api/v1/trainers <span class="method-badge get">GET</span></h2>
+                <div class="info-box">
+                    Liste et crée des formateurs rattachés à ton organisation.
                 </div>
 
-                <div class="form-group">
-                    <label>Body (JSON):</label>
-                    <textarea id="customBody" placeholder='{"title": "..."}'></textarea>
+                <div class="tabs">
+                    <button class="tab-btn active" onclick="listTrainers()">📋 Lister mes formateurs</button>
+                    <button class="tab-btn" onclick="createTrainer()">➕ Créer un formateur</button>
                 </div>
 
-                <label style="display:flex; align-items:center; gap:8px; margin-bottom:10px; font-weight:400;">
-                    <input type="checkbox" id="useAuthToken" checked style="width:auto;">
-                    Inclure automatiquement le Bearer token courant
-                </label>
+                <div class="form-group" id="createTrainerForm" style="display:none;">
+                    <label>Prénom:</label>
+                    <input type="text" id="newTrainerFirstName" placeholder="Alice" value="Alice">
+                    <label>Nom:</label>
+                    <input type="text" id="newTrainerLastName" placeholder="Martin" value="Martin">
+                    <label>Email:</label>
+                    <input type="email" id="newTrainerEmail" placeholder="alice.martin@org1.com" value="alice.martin@org1.com">
+                    <button onclick="submitTrainer()" style="margin-top:10px;">Créer</button>
+                </div>
 
-                <button onclick="customRequest()">📤 Envoyer</button>
-                <div id="customResponse" class="response-box" style="display:none;"></div>
+                <div id="trainersResponse" class="response-box" style="display:none;"></div>
             </div>
         </div>
     </div>
@@ -524,7 +516,7 @@
             updateSessionBar();
             showResponse('meResponse', 'Session effacée localement', true);
 
-            ['trainingsResponse', 'sessionsResponse'].forEach(id => {
+            ['trainingsResponse', 'sessionsResponse', 'trainersResponse'].forEach(id => {
                 const el = document.getElementById(id);
                 el.textContent = '';
                 el.style.display = 'none';
@@ -603,20 +595,19 @@
         }
 
         function listTrainings() {
-            setActiveTab(0);
+            setActiveTab('createTrainingForm', 0);
             document.getElementById('createTrainingForm').style.display = 'none';
             fetchTrainings();
         }
 
         function createTraining() {
-            setActiveTab(1);
+            setActiveTab('createTrainingForm', 1);
             document.getElementById('createTrainingForm').style.display = 'block';
         }
 
-        function setActiveTab(index) {
-            document.querySelectorAll('.tab-btn').forEach((btn, i) => {
-                btn.classList.toggle('active', i === index);
-            });
+        function setActiveTab(formId, index) {
+            const tabs = document.getElementById(formId).parentElement.querySelectorAll('.tab-btn');
+            tabs.forEach((btn, i) => btn.classList.toggle('active', i === index));
         }
 
         async function fetchTrainings() {
@@ -649,6 +640,52 @@
                 showResponse('trainingsResponse', data, response.ok);
             } catch (e) {
                 showResponse('trainingsResponse', `Erreur: ${e.message}`, false);
+            }
+        }
+
+        function listTrainers() {
+            setActiveTab('createTrainerForm', 0);
+            document.getElementById('createTrainerForm').style.display = 'none';
+            fetchTrainers();
+        }
+
+        function createTrainer() {
+            setActiveTab('createTrainerForm', 1);
+            document.getElementById('createTrainerForm').style.display = 'block';
+        }
+
+        async function fetchTrainers() {
+            if (!session.accessToken) {
+                showResponse('trainersResponse', 'Connecte-toi d\'abord', false);
+                return;
+            }
+            try {
+                const response = await timedFetch(`${baseUrl}/api/v1/trainers`, { headers: authHeaders() });
+                const data = await response.json();
+                showResponse('trainersResponse', data, response.ok);
+            } catch (e) {
+                showResponse('trainersResponse', `Erreur: ${e.message}`, false);
+            }
+        }
+
+        async function submitTrainer() {
+            if (!session.accessToken) {
+                showResponse('trainersResponse', 'Connecte-toi d\'abord', false);
+                return;
+            }
+            const first_name = document.getElementById('newTrainerFirstName').value;
+            const last_name = document.getElementById('newTrainerLastName').value;
+            const email = document.getElementById('newTrainerEmail').value;
+            try {
+                const response = await timedFetch(`${baseUrl}/api/v1/trainers`, {
+                    method: 'POST',
+                    headers: authHeaders({ 'Content-Type': 'application/json' }),
+                    body: JSON.stringify({ first_name, last_name, email })
+                });
+                const data = await response.json();
+                showResponse('trainersResponse', data, response.ok);
+            } catch (e) {
+                showResponse('trainersResponse', `Erreur: ${e.message}`, false);
             }
         }
 
