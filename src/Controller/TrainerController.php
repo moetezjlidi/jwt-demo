@@ -59,6 +59,10 @@ final class TrainerController extends AbstractController
             return $this->json(['error' => 'Not authenticated'], 401);
         }
 
+        if (!in_array('ROLE_PLATFORM_ADMIN', $user->getRoles(), true)) {
+            return $this->json(['error' => 'Seul un administrateur de la plateforme peut créer un formateur'], 403);
+        }
+
         $data = json_decode($request->getContent(), true) ?? [];
         $firstName = trim($data['first_name'] ?? '');
         $lastName = trim($data['last_name'] ?? '');
