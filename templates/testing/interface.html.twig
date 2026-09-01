@@ -394,6 +394,33 @@
 
                 <div id="trainersResponse" class="response-box" style="display:none;"></div>
             </div>
+
+            <!-- TRAINEES -->
+            <div class="card full-width">
+                <h2>8️⃣ Stagiaires — /api/v1/trainees <span class="method-badge get">GET</span></h2>
+                <div class="info-box">
+                    Liste et crée des stagiaires rattachés à ton organisation.
+                </div>
+
+                <div class="tabs">
+                    <button class="tab-btn active" onclick="listTrainees()">📋 Lister mes stagiaires</button>
+                    <button class="tab-btn" id="createTraineeTabBtn" onclick="createTrainee()" style="display:none;">➕ Créer un stagiaire</button>
+                </div>
+
+                <div class="form-group" id="createTraineeForm" style="display:none;">
+                    <label>Prénom:</label>
+                    <input type="text" id="newTraineeFirstName" placeholder="Julie" value="Julie">
+                    <label>Nom:</label>
+                    <input type="text" id="newTraineeLastName" placeholder="Petit" value="Petit">
+                    <label>Email:</label>
+                    <input type="email" id="newTraineeEmail" placeholder="julie.petit@org1.com" value="julie.petit@org1.com">
+                    <label>Établissement:</label>
+                    <input type="text" id="newTraineeInstitution" placeholder="Aix-Marseille Université" value="Aix-Marseille Université">
+                    <button onclick="submitTrainee()" style="margin-top:10px;">Créer</button>
+                </div>
+
+                <div id="traineesResponse" class="response-box" style="display:none;"></div>
+            </div>
         </div>
     </div>
 
@@ -452,13 +479,18 @@
         }
 
         function updateTrainerCreateVisibility() {
-            const btn = document.getElementById('createTrainerTabBtn');
+            hideCreateTabForNonAdmin('createTrainerTabBtn', 'createTrainerForm');
+            hideCreateTabForNonAdmin('createTraineeTabBtn', 'createTraineeForm');
+        }
+
+        function hideCreateTabForNonAdmin(btnId, formId) {
+            const btn = document.getElementById(btnId);
             const isAdmin = isPlatformAdmin();
             btn.style.display = isAdmin ? '' : 'none';
             if (!isAdmin) {
-                document.getElementById('createTrainerForm').style.display = 'none';
+                document.getElementById(formId).style.display = 'none';
                 btn.classList.remove('active');
-                document.getElementById('createTrainerForm').parentElement.querySelector('.tab-btn').classList.add('active');
+                document.getElementById(formId).parentElement.querySelector('.tab-btn').classList.add('active');
             }
         }
 
@@ -533,7 +565,7 @@
             updateSessionBar();
             showResponse('meResponse', 'Session effacée localement', true);
 
-            ['trainingsResponse', 'sessionsResponse', 'trainersResponse'].forEach(id => {
+            ['trainingsResponse', 'sessionsResponse', 'trainersResponse', 'traineesResponse'].forEach(id => {
                 const el = document.getElementById(id);
                 el.textContent = '';
                 el.style.display = 'none';
@@ -703,6 +735,53 @@
                 showResponse('trainersResponse', data, response.ok);
             } catch (e) {
                 showResponse('trainersResponse', `Erreur: ${e.message}`, false);
+            }
+        }
+
+        function listTrainees() {
+            setActiveTab('createTraineeForm', 0);
+            document.getElementById('createTraineeForm').style.display = 'none';
+            fetchTrainees();
+        }
+
+        function createTrainee() {
+            setActiveTab('createTraineeForm', 1);
+            document.getElementById('createTraineeForm').style.display = 'block';
+        }
+
+        async function fetchTrainees() {
+            if (!session.accessToken) {
+                showResponse('traineesResponse', 'Connecte-toi d\'abord', false);
+                return;
+            }
+            try {
+                const response = await timedFetch(`${baseUrl}/api/v1/trainees`, { headers: authHeaders() });
+                const data = await response.json();
+                showResponse('traineesResponse', data, response.ok);
+            } catch (e) {
+                showResponse('traineesResponse', `Erreur: ${e.message}`, false);
+            }
+        }
+
+        async function submitTrainee() {
+            if (!session.accessToken) {
+                showResponse('traineesResponse', 'Connecte-toi d\'abord', false);
+                return;
+            }
+            const first_name = document.getElementById('newTraineeFirstName').value;
+            const last_name = document.getElementById('newTraineeLastName').value;
+            const email = document.getElementById('newTraineeEmail').value;
+            const institution = document.getElementById('newTraineeInstitution').value;
+            try {
+                const response = await timedFetch(`${baseUrl}/api/v1/trainees`, {
+                    method: 'POST',
+                    headers: authHeaders({ 'Content-Type': 'application/json' }),
+                    body: JSON.stringify({ first_name, last_name, email, institution })
+                });
+                const data = await response.json();
+                showResponse('traineesResponse', data, response.ok);
+            } catch (e) {
+                showResponse('traineesResponse', `Erreur: ${e.message}`, false);
             }
         }
 
