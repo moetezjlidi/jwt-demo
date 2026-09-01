@@ -421,6 +421,33 @@
 
                 <div id="traineesResponse" class="response-box" style="display:none;"></div>
             </div>
+
+            <!-- INSCRIPTIONS -->
+            <div class="card full-width">
+                <h2>9️⃣ Inscriptions — /api/v1/inscriptions <span class="method-badge get">GET</span></h2>
+                <div class="info-box">
+                    Liste et crée des inscriptions (stagiaire ↔ session) rattachées à ton organisation.
+                </div>
+
+                <div class="tabs">
+                    <button class="tab-btn active" onclick="listInscriptions()">📋 Lister mes inscriptions</button>
+                    <button class="tab-btn" id="createInscriptionTabBtn" onclick="createInscription()" style="display:none;">➕ Créer une inscription</button>
+                </div>
+
+                <div class="form-group" id="createInscriptionForm" style="display:none;">
+                    <label>ID du stagiaire:</label>
+                    <input type="text" id="newInscriptionTraineeId" placeholder="1" value="1">
+                    <label>ID de la session:</label>
+                    <input type="text" id="newInscriptionSessionId" placeholder="1" value="1">
+                    <label>Statut d'inscription:</label>
+                    <input type="text" id="newInscriptionStatus" placeholder="En attente" value="En attente">
+                    <label>Motivation:</label>
+                    <textarea id="newInscriptionMotivation" placeholder="Motivation du stagiaire"></textarea>
+                    <button onclick="submitInscription()" style="margin-top:10px;">Créer</button>
+                </div>
+
+                <div id="inscriptionsResponse" class="response-box" style="display:none;"></div>
+            </div>
         </div>
     </div>
 
@@ -481,6 +508,7 @@
         function updateTrainerCreateVisibility() {
             hideCreateTabForNonAdmin('createTrainerTabBtn', 'createTrainerForm');
             hideCreateTabForNonAdmin('createTraineeTabBtn', 'createTraineeForm');
+            hideCreateTabForNonAdmin('createInscriptionTabBtn', 'createInscriptionForm');
         }
 
         function hideCreateTabForNonAdmin(btnId, formId) {
@@ -565,7 +593,7 @@
             updateSessionBar();
             showResponse('meResponse', 'Session effacée localement', true);
 
-            ['trainingsResponse', 'sessionsResponse', 'trainersResponse', 'traineesResponse'].forEach(id => {
+            ['trainingsResponse', 'sessionsResponse', 'trainersResponse', 'traineesResponse', 'inscriptionsResponse'].forEach(id => {
                 const el = document.getElementById(id);
                 el.textContent = '';
                 el.style.display = 'none';
@@ -782,6 +810,53 @@
                 showResponse('traineesResponse', data, response.ok);
             } catch (e) {
                 showResponse('traineesResponse', `Erreur: ${e.message}`, false);
+            }
+        }
+
+        function listInscriptions() {
+            setActiveTab('createInscriptionForm', 0);
+            document.getElementById('createInscriptionForm').style.display = 'none';
+            fetchInscriptions();
+        }
+
+        function createInscription() {
+            setActiveTab('createInscriptionForm', 1);
+            document.getElementById('createInscriptionForm').style.display = 'block';
+        }
+
+        async function fetchInscriptions() {
+            if (!session.accessToken) {
+                showResponse('inscriptionsResponse', 'Connecte-toi d\'abord', false);
+                return;
+            }
+            try {
+                const response = await timedFetch(`${baseUrl}/api/v1/inscriptions`, { headers: authHeaders() });
+                const data = await response.json();
+                showResponse('inscriptionsResponse', data, response.ok);
+            } catch (e) {
+                showResponse('inscriptionsResponse', `Erreur: ${e.message}`, false);
+            }
+        }
+
+        async function submitInscription() {
+            if (!session.accessToken) {
+                showResponse('inscriptionsResponse', 'Connecte-toi d\'abord', false);
+                return;
+            }
+            const trainee_id = document.getElementById('newInscriptionTraineeId').value;
+            const session_id = document.getElementById('newInscriptionSessionId').value;
+            const inscription_status = document.getElementById('newInscriptionStatus').value;
+            const motivation = document.getElementById('newInscriptionMotivation').value;
+            try {
+                const response = await timedFetch(`${baseUrl}/api/v1/inscriptions`, {
+                    method: 'POST',
+                    headers: authHeaders({ 'Content-Type': 'application/json' }),
+                    body: JSON.stringify({ trainee_id, session_id, inscription_status, motivation })
+                });
+                const data = await response.json();
+                showResponse('inscriptionsResponse', data, response.ok);
+            } catch (e) {
+                showResponse('inscriptionsResponse', `Erreur: ${e.message}`, false);
             }
         }
 
